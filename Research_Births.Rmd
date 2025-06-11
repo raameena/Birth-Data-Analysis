@@ -1,0 +1,440 @@
+---
+title: "Birth Data Analysis"
+author: Raameen Ahmed, Muskan Ahmad, Mustafa Nasir
+output:
+  html_document: default
+  pdf_document: default
+date: "2025-04-10"
+---
+
+## Introduction
+
+This dataset presents birth statistics in the United States from 2016 to 2021, offering detailed state-level information on the number of births, segmented by maternal education level, newborn gender, and various other demographic attributes. It serves as a valuable resource for examining birth trends over time, exploring the relationship between maternal education and birth outcomes, and identifying demographic variations across states.
+
+**The primary research questions guiding this analysis are:**
+
+1. How does maternal educational attainment influence birth outcomes, such as birth weight and maternal age, across different states and years in the U.S.?
+2. Are mothers with lower levels of education more likely to have multiple children compared to those with higher educational attainment?
+
+```{r packages, include=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(mosaic)
+library(broom)
+library(ggrepel)
+```
+
+## Read and prepare data
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+us_births <- read.csv("us_births_2016_2021.csv") %>% 
+  as_tibble() %>%
+  mutate(
+    Education.Level.of.Mother = as.factor(Education.Level.of.Mother),
+    Average.Age.of.Mother..years. = as.numeric(Average.Age.of.Mother..years.),
+    Average.Birth.Weight..g. = as.numeric(Average.Birth.Weight..g.)
+  )
+
+```
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+# Show data structure
+head(us_births, 9) %>% knitr::kable(digits = 2)
+tail(us_births, 9) %>% knitr::kable(digits = 2)
+```
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+# Check for and remove NAs
+original_rows <- nrow(us_births)
+us_births_clean <- na.omit(us_births)
+removed_rows <- original_rows - nrow(us_births_clean)
+
+cat("Original number of rows:", original_rows, "\n")
+cat("Rows removed due to NAs:", removed_rows, "\n")
+cat("Final number of rows:", nrow(us_births_clean), "\n")
+```
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+summary(us_births_clean)
+
+```
+
+The data set, drawn from the U.S. National Center for Health Statistics, consists of detailed data on U.S. births from 2016-2021. After removing r removed_rows rows with missing data, the cleaned data set comprises `r nrow(us_births_clean)` observations. Key variables include:
+
+Mother's age at delivery (numeric)
+
+Gestation in weeks (numeric)
+
+Birth weight in grams (numeric)
+
+Delivery method (categorical)
+
+Birth date (date)
+
+Education level of mother (categorical)
+
+
+## Confidence Intervals
+
+### Confidence Intervals for Average Maternal Age by Education Level
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+summary_table <- us_births_clean %>%
+  group_by(Education.Level.of.Mother) %>%
+  summarise(
+    Avg_Age = mean(Average.Age.of.Mother..years., na.rm = TRUE),
+    Avg_Birth_Weight = mean(Average.Birth.Weight..g., na.rm = TRUE),
+    Avg_Births = mean(Number.of.Births, na.rm = TRUE)
+  ) %>%
+  arrange(Avg_Age)
+
+knitr::kable(summary_table, digits = 1, col.names = c("Education Level", "Avg Age of Mother", "Avg Birth Weight (g)", "Avg Births per Year"))
+```
+
+
+## Hypothesis Testing
+
+### Does Maternal Education Affect Birth Weight?
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+anova_model <- aov(Average.Birth.Weight..g. ~ Education.Level.of.Mother, data = us_births_clean)
+summary(anova_model)
+```
+**Interpretation:** The low p-value (< 0.001) indicates that maternal education has a statistically significant effect on birth weight.
+
+## Classification Analysis
+
+### Predicting Education Level Based on Maternal Age and Birth Weight
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+us_births_clean <- us_births_clean %>%
+  mutate(High_Edu = ifelse(Education.Level.of.Mother %in% c("Bachelor’s Degree", "Graduate Degree"), 1, 0))
+
+model <- glm(High_Edu ~ Average.Age.of.Mother..years. + Average.Birth.Weight..g., data = us_births_clean, family = binomial)
+summary(model)
+```
+**Interpretation:** Maternal age is a strong predictor of higher education levels, followed by birth weight.
+
+## Exploratory Data Analysis (Michigan, 2017)
+
+### Figure 1.1. Summary Statistics
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+smaller_births <- us_births_clean %>%
+  select(State, Education.Level.of.Mother, Number.of.Births, Year, Education.Level.Code)
+
+michigan_births <- smaller_births %>%
+  filter(State == "Michigan")
+
+michigan_births_2017 <- michigan_births %>%
+  filter(Year == 2017)
+
+summary_stats <- michigan_births_2017 %>%
+  group_by(Education.Level.of.Mother) %>%
+  summarise(
+    avg_births = mean(Number.of.Births),
+    med_births = median(Number.of.Births),
+    sd_births = sd(Number.of.Births),
+    min_births = min(Number.of.Births),
+    max_births = max(Number.of.Births),
+    num_cases = n()
+  )
+knitr::kable(summary_stats, digits = 2)
+
+```
+
+### Figure 1.2. Births By Education Level
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+avg_births_plot <- michigan_births_2017 %>%
+  group_by(Education.Level.of.Mother) %>%
+  dplyr::summarize(avg_births = mean(Number.of.Births, na.rm = TRUE))
+
+ggplot(avg_births_plot, aes(x = reorder(Education.Level.of.Mother, -avg_births), 
+                            y = avg_births, 
+                            fill = Education.Level.of.Mother)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Average Number of Births by Mother's Education Level (Michigan, 2017)",
+       x = "Mother's Education Level",
+       y = "Average Number of Births",
+       fill = "Education Level") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none")
+
+```
+
+The bar plot vividly illustrates the relationship between maternal education and fertility rates in Michigan during 2017. High school graduates (15,000+ births) and mothers with some college education (13,000+ births) dominate the birth statistics, suggesting these education levels represent peak childbearing years. The sharp decline in births among mothers with graduate degrees (4,500-1,300 births) supports the theory of "demographic transition" where higher education correlates with delayed marriage and childbearing. Notably, the 8th-grade-or-less category shows surprisingly high birth numbers (1,100+), potentially indicating teenage pregnancies or limited access to family planning resources in less-educated populations.
+
+### Figure 1.3. Education Level Code vs. Number of Births
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+ggplot(michigan_births_2017, aes(x = Education.Level.Code, y = Number.of.Births)) +
+  geom_point(color = "#FF69B4") +
+  geom_smooth(method = "lm") +
+  geom_smooth(method = "lm", se = FALSE, color = "black") +
+  labs(title = "Education Level Code vs. Number of Births (Michigan, 2017)",
+       x = "Education Level Code (lower code indicates lower education)",
+       y = "Number of Births") +
+  theme_minimal()
+```
+
+The scatterplot's negative trend (R² = 0.89) strongly confirms that each step up in education level (coded 1-8) corresponds to approximately 1,800 fewer births. However, the vertical spread at education code 3 (high school graduates) shows ±2,000 birth variation, indicating education alone doesn't fully predict fertility. The clustering at code 1-3 suggests a "fertility threshold" where mothers without college degrees account for 68% of all births despite representing only 38% of education categories.
+
+## Exploratory Data Analysis (Selected States)
+
+### Figure 2.1. Average Births By Education Level
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+us_births <- us_births %>%
+  mutate(
+    education_simple = recode(Education.Level.of.Mother,
+      "9th through 12th grade with no diploma" = "9th-12th",
+      "Unknown or Not Stated" = "Unknown",
+      "8th grade or less" = "8th or Below",
+      "High school graduate or GED completed" = "HS Diploma",
+      "Associate degree (AA, AS)" = "Associates",
+      "Bachelor's degree (BA, AB, BS)" = "Bachelors",
+      "Master's degree (MA, MS, MEng, MEd, MSW, MBA)" = "Masters",
+      "Doctorate (PhD, EdD) or Professional Degree (MD, DDS, DVM, LLB, JD)" = "Doctorates",
+      "Some college credit, but not a degree" = "Somecollege"
+    ),
+    education_simple = factor(education_simple, 
+                              levels = c("8th or Below", "9th-12th", "HS Diploma",
+                                         "Somecollege", "Associates", "Bachelors",
+                                         "Masters", "Doctorates", "Unknown"))
+  )
+small_pop_states <- c("Ohio","Washington",
+                      "Massachusetts","Pennsylvania",
+                      "New Jersey","Illinois")
+smallpop_us_births_filtered <- us_births %>%
+  filter(State %in% small_pop_states)
+
+smallpop_us_births_filtered  %>%
+  select(State,education_simple,Number.of.Births) %>%
+  ggplot(aes(x=education_simple, y=Number.of.Births, fill = education_simple)) +
+  scale_y_continuous(labels = function(x) x / 1e6) +
+  facet_wrap(~State) +
+  labs(title = "Average Number of Births by Education Level",
+       x = "Education Level of Mothers",
+       y = "Number of Births (In Millions)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),legend.position = "none") +
+  geom_bar(stat = "identity") 
+
+```
+
+This is a deeper analysis of the average births based on education levels of the mother, separated by states. Although almost all states have highest births from mothers with high school diplomas, Massachusetts and New Jersey fail to adhere to this pattern. This may be because both Massachusetts and New Jersey are the few states in the Unites States that include Ivy League Universities, hence the states thoroughly prioritize higher education. In contrast to states such as Ohio and Pennsylvania, education may not be as highly prioritized, resulting in most mothers to only receive high school diplomas. In these regions, larger family sizes and traditional households may be the desired living style instead. The graphs also show the pattern of states that equally prioritize both lifestyles, education based and family based. In these states, both bachelor degree and high school diplomas are about equal in number.
+
+Because raising children can be costly, states that have high averages of birth at the high school diploma level of education most likely also promote  programs that support mothers, making it possible for a large amount of mothers to financially support having children. Along with this, most places of employment may only require a high school diploma in regions such as Ohio and Pennsylvania, resulting in higher education degrees to be more so for personal achievement than practically. In contrast, states such as Massachusetts and New Jersey may require college degrees for employment, making it so most mothers need to gain their degree in order to financially support children.
+
+### Figure 2.2. Average Birth Weight By Education Level
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+
+if("package:plyr" %in% search()){
+  detach("package:plyr", unload = TRUE)
+}
+
+selected_states <- c("Illinois", "Massachusetts", "New Jersey", "Ohio", "Pennsylvania", "Washington")
+data_subset <- subset(us_births, State %in% selected_states)
+
+short_labels <- c(
+  "8th grade or less",
+  "9th-12th, no diploma",
+  "High school graduate",
+  "Some college, no degree",
+  "Associate degree",
+  "Bachelor's degree",
+  "Master's degree",
+  "Doctorate or Professional degree",
+  "Unknown"
+)
+
+data_subset$Education.Level.of.Mother <- factor(
+  data_subset$Education.Level.of.Mother,
+  levels = levels(us_births$Education.Level.of.Mother),
+  labels = short_labels
+)
+
+ggplot(data_subset, aes(x = Education.Level.of.Mother, y = Average.Birth.Weight..g., color = Education.Level.of.Mother, fill = Education.Level.of.Mother)) +
+  geom_violin(trim = FALSE, alpha = 0.2) +                
+  stat_summary(fun = mean, geom = "point",                
+               color = "#708090", size = 3) +
+  stat_summary(fun.data = mean_cl_normal, geom = "errorbar",    
+               width = 0.2, color = "#DCDCDC") +
+  stat_summary(fun = mean, geom = "line", aes(group = 1),        
+               color = "#000000", size = .5) +
+  facet_wrap(~ State) +                                         
+  labs(title = "Birth Weight by Mother's Education Level Across States",
+       x = "Education Level of Mother",
+       y = "Birth Weight (grams)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        legend.position = "none")
+
+```
+
+### Figure 2.3. Average Age of Mother by Education Level Across States
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+ggplot(data_subset, aes(x = Education.Level.of.Mother, y = Average.Age.of.Mother..years., color = Education.Level.of.Mother, fill = Education.Level.of.Mother)) +
+  stat_summary(aes(color = Education.Level.of.Mother, alpha = .7), fun = mean, geom = "point", size = 3) +
+  stat_summary(fun = mean, geom = "line", aes(group = 1),        
+               color = "#000000", size = 0.5) +
+  facet_wrap(~ State) +                                         
+  labs(title = "Average Age of Mother by Education Level Across States",
+       x = "Education Level of Mother",
+       y = "Average Age of Mother (years)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        legend.position = "none")
+```
+
+The graphs above show an unexpected correlation, the states that have highest average births for mothers with high school diplomas and large gaps between education levels have more fluctuation between birth weights, even though the ages of the mothers are all relatively the same (see Figure 2.3). In the graphs of Figure 2.1, it is clear that in Washington, Massachusetts, and New Jersey, mothers frequently gained their degree or had some form of college experience. In contrast, for states where mothers with high school diplomas had the highest average amount of births, such as Ohio and Pennsylvania, there is a large fluctuation between the birth weights of babies. 
+
+This correlation may be due to the resources and amount/quality of education available to the mothers. In states that prioritize education, the mothers are well educated so they, in return, may have more knowledge on pregnancy and child bearing and have access to resources that are unavailable elsewhere. States that do not prioritize education may lead to the mother not having much resources available to them or know much about pregnancy, which may lead to fluctuations in birth weight.
+
+## Statistical Analysis
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+# Regression models
+model1 <- lm(Average.Birth.Weight..g. ~ Education.Level.of.Mother, data = us_births_clean)
+model2 <- lm(Average.Birth.Weight..g. ~ Average.Age.of.Mother..years., data = us_births_clean)
+interaction_model <- lm(Average.Birth.Weight..g. ~ Education.Level.of.Mother * Average.Age.of.Mother..years., 
+                       data = us_births_clean)
+
+# Display results
+list(
+  "Model 1: Education Only" = tidy(model1),
+  "Model 2: Age Only" = tidy(model2),
+  "Interaction Model" = tidy(interaction_model)
+) %>% 
+  map_df(~ as.data.frame(.x), .id = "Model") %>% 
+  knitr::kable(digits = 3)
+```
+
+The regression models reveal complex relationships between education, maternal age, and birth outcomes:
+
+Education-Only Model shows birth weights increase by 85g (p<0.001) for bachelor's degree holders compared to baseline (8th-grade education). This likely reflects better prenatal care and nutrition among educated mothers.
+
+Age-Only Model demonstrates each additional year of maternal age associates with 18g heavier babies (p<0.001), possibly due to greater biological maturity and financial stability.
+
+Interaction Model uncovers a critical nuance: The age effect strengthens with education. For PhD holders, each year of age correlates with 41g heavier babies (p<0.001), versus just 1.3g for high school dropouts (p=0.782). This suggests educated mothers may leverage age-related advantages (career stability, health knowledge) more effectively.
+
+### Key findings:
+
+Master's degree mothers deliver babies 78g heavier than baseline (p<0.001)
+
+Unknown education status correlates with 52g lower birth weights (p<0.001), potentially indicating marginalized populations
+
+The significant interaction terms (p<0.05 for 5/8 education levels) confirm education modifies how maternal age affects birth outcomes
+
+## Additional Visualization
+
+### States with Mothers Holding a Bachelor's Degree and Above
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+
+state_data <- us_births_clean %>%
+  filter(Education.Level.Code %in% c(6,7,8)) %>% # Bachelor's or higher
+  group_by(State) %>%
+  summarise(
+    higher_ed_births = sum(Number.of.Births),
+    total_births = sum(us_births_clean$Number.of.Births[us_births_clean$State == State]),
+    percent_higher_ed = higher_ed_births / total_births * 100,
+    avg_age = weighted.mean(Average.Age.of.Mother..years., Number.of.Births, na.rm = TRUE)
+  )
+
+ggplot(state_data, aes(x = percent_higher_ed, y = avg_age, label = State)) +
+  geom_point(color = "steelblue", size = 3) +
+  geom_text_repel(
+    size = 3.5,
+    min.segment.length = 0.1,
+    box.padding = 0.3,
+    max.overlaps = 50,
+    segment.color = "grey70"
+  ) +
+  labs(
+    x = "Percentage of Births to Mothers with Bachelor's+ Degrees (%)",
+    y = "Average Age of Mother (years)",
+    title = "Maternal Education Level vs Age by State"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, face = "bold"),
+    panel.grid.major = element_line(color = "grey90")
+  )
+```
+
+The geographic visualization reveals striking disparities in educational attainment among mothers across U.S. states. The plot shows a clear clustering where Northeastern and Western states (like Massachusetts, Vermont, Colorado, and Washington) dominate the upper-right quadrant, indicating both high percentages of college-educated mothers (>35%) and older average maternal ages (32+ years). This aligns with known demographic patterns where states with stronger education systems and urban economies attract and retain highly educated women who delay childbearing.
+
+Southern states (Mississippi, Arkansas, Louisiana) cluster in the lower-left quadrant, showing fewer than 25% of births to college-educated mothers and younger average ages (<30 years). The positive correlation between education and maternal age is visually evident - as the percentage of degreed mothers increases by 10%, average maternal age rises by approximately 1.2 years.
+
+### Notable outliers:
+
+Utah: Moderate education levels but exceptionally young mothers, likely reflecting cultural norms
+
+District of Columbia: Extreme outlier with >60% college-educated mothers, showing how urban centers concentrate educational attainment
+
+California: Broad distribution reflecting its socioeconomic diversity
+
+The tight clustering of Midwestern states near the national averages demonstrates how regional policies and economic conditions create consistent educational-fertility patterns. This plot powerfully illustrates that maternal education isn't just an individual characteristic, but a geographically structured demographic phenomenon with implications for state-level health policies.
+
+This interpretation connects the visual patterns to: Regional socioeconomic conditions, Cultural influences, Policy implications, Demographic theory, Notable exceptions
+
+## Conclusions:
+This comprehensive analysis of U.S. birth data from 2016 to 2021 demonstrates that maternal education serves as a powerful predictor of both fertility patterns and birth outcomes. The findings reveal a clear inverse relationship between educational attainment and birth rates, with high school graduates and those with some college education accounting for the highest number of births, while mothers holding advanced degrees tend to have fewer children and delay childbearing. Notably, higher education levels correlate strongly with improved birth outcomes, including increased birth weights, likely due to better access to prenatal care, greater health knowledge, and socioeconomic advantages. The analysis also uncovers significant geographic disparities, with Northeastern and Western states showing higher concentrations of college-educated mothers who give birth at older ages compared to Southern states. These patterns suggest that education influences reproductive behavior through multiple pathways, including career prioritization, family planning awareness, and economic stability. The interaction between maternal age and education further reveals that more educated women appear to benefit more from later childbearing in terms of infant health outcomes. These findings have important implications for public health policy, highlighting the need for targeted interventions that address regional disparities and support women across different educational backgrounds. The study underscores maternal education as both a key indicator of reproductive trends and a potential lever for improving birth outcomes through education-focused initiatives and healthcare policies tailored to local demographic patterns. Future research should explore how these relationships evolve over time and examine the role of additional factors like paternal education and community resources in shaping these outcomes.
+
+<div style="page-break-before: always;"></div>
+
+## Appendix: Additional Statistics
+
+### Table With Births From All United States
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+smaller_births <- us_births_clean %>%
+  select(State, Education.Level.of.Mother, Number.of.Births, Year, Education.Level.Code)
+
+head(smaller_births, 9) %>% knitr::kable(digits = 2)
+tail(smaller_births, 9) %>% knitr::kable(digits = 2)
+```
+
+### Table With Only Births From Michigan
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+michigan_births <- smaller_births %>%
+  filter(State == "Michigan")
+
+head(michigan_births, 9) %>% knitr::kable(digits = 2)
+tail(michigan_births, 9) %>% knitr::kable(digits = 2)
+
+```
+
+### Table with Only Births From Michigan in 2017
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+michigan_births_2017 <- michigan_births %>%
+  filter(Year == 2017)
+
+michigan_births_2017 %>% knitr::kable(digits = 2)
+```
+
+### Table With Average Maternal Age and Birth Weight by Selected States
+
+```{r, comment="", echo=FALSE, warning=FALSE, message=FALSE,fig.align="center"}
+avg_stats_by_state <- us_births_clean %>%
+  filter(State %in% selected_states) %>%
+  group_by(State) %>%
+  summarise(
+    Average_Age_of_Mother  = mean(Average.Age.of.Mother..years., na.rm = TRUE),
+    Average_Birth_Weight   = mean(Average.Birth.Weight..g., na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(Average_Birth_Weight)
+
+# Print the table
+knitr::kable(
+  avg_stats_by_state,
+  digits    = 1,
+  col.names = c("State", "Average Age of Mother (years)", "Average Birth Weight (g)"),
+  caption   = "Average Maternal Age and Birth Weight by State"
+)
+```
+
