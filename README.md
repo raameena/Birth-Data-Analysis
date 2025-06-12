@@ -8,10 +8,10 @@ Over the course of one month, myself and two others gathered data from [Kaggle](
 
 ## Conclusions
 
-1. Analysis of U.S. birth data (2016-2021) demonstrates that maternal education strongly predicts fertility patterns and birth outcomes, revealing an inverse relationship between educational attainment and birth rates
+1. **Maternal education is inversely related to fertility rates:** Women with high school or some college education have more children, while those with advanced degrees tend to delay childbirth and have fewer births overall.
 
-2. Higher education levels correlate with improved birth outcomes, such as increased birth weights (e.g., Master's degree mothers deliver babies 78g heavier than baseline ), likely due to better access to prenatal care, health knowledge, and socioeconomic advantages.
+2. **Higher education correlates with better birth outcomes:** Educated mothers are more likely to have healthier babies, likely due to improved prenatal care access, health knowledge, and economic resources.
 
-3. Significant geographic disparities exist, with Northeastern and Western states showing higher concentrations of college-educated mothers giving birth at older ages compared to Southern states
+3. **Geographic disparities reflect educational and reproductive trends:** Northeastern and Western states show more college-educated mothers and later childbearing compared to the South, indicating regional inequality in maternal resources and planning.
 
-4. These findings have important implications for public health policy, highlighting the need for targeted interventions to address regional disparities and support women across diverse educational backgrounds.
+4. **Policy implications point to education as a lever for better outcomes:** The findings support targeting interventions by region and education level, and call for further study into related factors like paternal education and local support systems.
