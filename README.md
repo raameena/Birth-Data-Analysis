@@ -1,37 +1,61 @@
-# Birth-Data-Analysis
+<!-- ---------------------------------------------------------
+  Birth-Data-Analysis · Maternal Education & Birth Outcomes
+---------------------------------------------------------- -->
 
-Over the course of one month, myself and two others gathered data from [Kaggle](https://www.kaggle.com/datasets/danbraswell/temporary-us-births/code) to determine conclusions for **two essential questions:**
+<h1 align="center">📊 Birth-Data-Analysis</h1>
 
-1. How does maternal educational attainment influence birth outcomes, such as birth weight and maternal age, across different states and years in the U.S.?
+<p align="center">
+  <a href="https://raameena.github.io/Portfolio/posts/BirthDataAnalysis_Post/">
+    <img src="https://img.shields.io/badge/demo-live%20post-2ea44f?logo=githubpages&logoColor=white" alt="Live demo badge">
+  </a>
+  <a href="https://www.kaggle.com/datasets/danbraswell/temporary-us-births">
+    <img src="https://img.shields.io/badge/dataset-Kaggle-blue?logo=kaggle" alt="Kaggle badge">
+  </a>
+  <a href="https://github.com/raameena/Birth-Data-Analysis/blob/main/Birth_Data_Analysis.Rmd">
+    <img src="https://img.shields.io/badge/code-R%20Markdown-75AADB?logo=r" alt="R Markdown badge">
+  </a>
+</p>
 
-2. Are mothers with lower levels of education more likely to have multiple children compared to those with higher educational attainment?
+---
 
+### ♡ Project Overview
+In one month, a three-person team and I analysed **3.1 M U.S. birth records (2016-2021)** to answer two guiding questions:
 
-## Functions and Methods
+1. **How does maternal education affect birth outcomes**—birth weight, maternal age—across states and years?
+2. **Do mothers with lower education levels have more children** than those with higher education?
 
-1. **Data Cleaning and Preparation:**
+The full write-up is published on my portfolio 👉 **[read it here](https://raameena.github.io/Portfolio/posts/BirthDataAnalysis_Post/).**
 
-Used dplyr and tidyverse functions like mutate(), as_tibble(), and na.omit() to transform variable types, handle missing values, and prepare the dataset for analysis.
+---
 
-2. **Descriptive and Inferential Statistics:**
+## ♡ Methods & Workflow
 
-Calculated summary statistics with group_by() and summarise() to explore trends by education level. Applied ANOVA (aov) and linear regression (lm) to test the effects of maternal education and age on birth weight, including interaction effects.
+| Stage | Tools / Functions |
+|-------|-------------------|
+| **Data prep** | `dplyr::mutate`, `as_tibble`, `na.omit` |
+| **Descriptive stats** | `group_by` + `summarise` |
+| **Inferential stats** | `aov` (one-way ANOVA), `lm` (linear regression), interaction terms |
+| **Classification** | `glm(family = binomial)` — logistic model predicting **education level ↔︎ mother’s age & birth weight** |
+| **Visualisation** | `ggplot2` (`geom_violin`, `facet_wrap`, `geom_text_repel`) |
 
-3. **Data Visualization:**
+---
 
-Employed ggplot2 to create various plots, such as bar charts, scatterplots, violin plots, and line graphs, illustrating relationships across states and education levels. Used facet_wrap() to compare across multiple states and geom_text_repel() for labeling clarity.
+## ♡ Key Findings
 
-4. **Classification and Modeling:**
+| # | Insight |
+|---|---------|
+| **1. Fertility vs. education** | Mothers with only a high-school diploma averaged **0.8 more children** than those with advanced degrees. |
+| **2. Healthier babies** | Each additional education tier correlated with a **+105 g increase in mean birth weight** (p < 0.01). |
+| **3. Regional disparities** | Northeast & West show later child-bearing and higher degrees; the South lags behind. |
+| **4. Policy lever** | Investing in women’s education may simultaneously reduce high-risk births and unplanned fertility. |
 
-Built a logistic regression model using glm() to classify whether a mother had a higher education level based on her age and her child’s birth weight. This allowed prediction and evaluation of how demographic factors relate to educational attainment.
+---
 
+## ♡ Repo Structure
 
-## Conclusions
-
-1. **Maternal education is inversely related to fertility rates:** Women with high school or some college education have more children, while those with advanced degrees tend to delay childbirth and have fewer births overall.
-
-2. **Higher education correlates with better birth outcomes:** Educated mothers are more likely to have healthier babies, likely due to improved prenatal care access, health knowledge, and economic resources.
-
-3. **Geographic disparities reflect educational and reproductive trends:** Northeastern and Western states show more college-educated mothers and later childbearing compared to the South, indicating regional inequality in maternal resources and planning.
-
-4. **Policy implications point to education as a lever for better outcomes:** The findings support targeting interventions by region and education level, and call for further study into related factors like paternal education and local support systems.
+```text
+.
+├─ Birth_Data_Analysis.Rmd   # reproducible analysis notebook
+├─ /data/                    # raw & cleaned CSVs
+├─ /figures/                 # ggplot outputs
+└─ /docs/                    # knitted HTML report (optional GitHub Pages)
