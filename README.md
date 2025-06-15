@@ -59,7 +59,3 @@ The full write-up is published on my portfolio 👉 **[read it here](https://raa
 ├─ /data/                    # raw & cleaned CSVs
 ├─ /figures/                 # ggplot outputs
 └─ /docs/                    # knitted HTML report (optional GitHub Pages)
-
-Use Control + Shift + m to toggle the tab key moving focus. Alternatively, use esc then tab to move to the next interactive element on the page.
-No file chosen
-Attach files by dragging & dropping, selecting or pasting them.
