@@ -11,7 +11,7 @@
   <a href="https://www.kaggle.com/datasets/danbraswell/temporary-us-births">
     <img src="https://img.shields.io/badge/dataset-Kaggle-blue?logo=kaggle" alt="Kaggle badge">
   </a>
-  <a href="https://github.com/raameena/Birth-Data-Analysis/blob/main/Birth_Data_Analysis.Rmd">
+  <a href="[https://github.com/raameena/Birth-Data-Analysis/blob/main/Birth_Data_Analysis.Rmd](https://github.com/raameena/Birth-Data-Analysis/blob/main/Research_Births.Rmd)">
     <img src="https://img.shields.io/badge/code-R%20Markdown-75AADB?logo=r" alt="R Markdown badge">
   </a>
 </p>
