@@ -1,3 +1,104 @@
+Skip to content
+Navigation Menu
+raameena
+Birth-Data-Analysis
+
+Type / to search
+Code
+Issues
+Pull requests
+Actions
+Projects
+Wiki
+Security
+Insights
+Settings
+Unsaved changes
+You have unsaved changes on this file that can be restored.
+Birth-Data-Analysis
+/
+README.md
+in
+main
+
+Edit
+
+Preview
+Indent mode
+
+Spaces
+Indent size
+
+2
+Line wrap mode
+
+Soft wrap
+Editing README.md file contents
+Selection deleted
+
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
 <!-- ---------------------------------------------------------
   Birth-Data-Analysis · Maternal Education & Birth Outcomes
 ---------------------------------------------------------- -->
@@ -11,7 +112,7 @@
   <a href="https://www.kaggle.com/datasets/danbraswell/temporary-us-births">
     <img src="https://img.shields.io/badge/dataset-Kaggle-blue?logo=kaggle" alt="Kaggle badge">
   </a>
-  <a href="[https://github.com/raameena/Birth-Data-Analysis/blob/main/Birth_Data_Analysis.Rmd](https://github.com/raameena/Birth-Data-Analysis/blob/main/Research_Births.Rmd)">
+  <a href="https://github.com/raameena/Birth-Data-Analysis/blob/main/Birth_Data_Analysis.Rmd">
     <img src="https://img.shields.io/badge/code-R%20Markdown-75AADB?logo=r" alt="R Markdown badge">
   </a>
 </p>
@@ -59,3 +160,7 @@ The full write-up is published on my portfolio 👉 **[read it here](https://raa
 ├─ /data/                    # raw & cleaned CSVs
 ├─ /figures/                 # ggplot outputs
 └─ /docs/                    # knitted HTML report (optional GitHub Pages)
+
+Use Control + Shift + m to toggle the tab key moving focus. Alternatively, use esc then tab to move to the next interactive element on the page.
+No file chosen
+Attach files by dragging & dropping, selecting or pasting them.
